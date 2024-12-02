@@ -1,13 +1,26 @@
-from aiogram.filters import CommandStart, Command
+from aiogram.filters import CommandStart
 from aiogram.types import Message, CallbackQuery
-from aiogram.filters.callback_data import CallbackData
+# from aiogram.filters.callback_data import CallbackData
 from aiogram import F, Router
 import app.keyboards as kb
+import sqlite3
 router = Router()
 
 
 @router.message(CommandStart())
 async def cmd_start(message: Message):
+    connection = sqlite3.connect('friendsclub.sql')
+    cur = connection.cursor()
+    cur.execute('''CREATE TABLE IF NOT EXISTS animals(
+                animal_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name VARCHAR(500) NOT NULL,
+                image_url VARCHAR(255)
+                )''')
+    cur.execute('''CREATE TABLE IF NOT EXISTS questions(
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                descriptions VARCHAR(1000) NOT NULL,
+                animal_id INTEGER,
+                FOREIGN KEY(animal_id) REFERENCES animals(animal_id))''')
     await message.reply(f'Привет. '
                         f'{message.from_user.first_name}',
                         reply_markup=kb.main)
@@ -31,5 +44,9 @@ async def view_info(callback: CallbackQuery):
 
 @router.callback_query(F.data == 'quiz')
 async def start_quiz(callback: CallbackQuery):
-    await callback.message.answer(reply_markup=await kb.view_questions)
+    question = (
+        'Как вы любите проводить время?'
+    )
+    await callback.message.edit_text(text=question,
+                                     reply_markup=await kb.view_questions())
     await callback.answer()

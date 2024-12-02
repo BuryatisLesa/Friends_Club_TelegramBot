@@ -1,4 +1,3 @@
-# from extensions import APIException
 from config import TOKEN
 from aiogram import Bot, Dispatcher
 import asyncio
